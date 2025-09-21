@@ -1,71 +1,140 @@
-# Getting Started with Create React App
+# 🐳 Taller Docker Test - Rick & Morty App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-hi
+**Autor:** Pablo Fernando Pineda P. - A00395831
 
-## Available Scripts
+## 📋 Descripción del Proyecto
 
-In the project directory, you can run:
+Aplicación web desarrollada en **React** que muestra personajes de Rick & Morty. El proyecto implementa **Docker** para contenerización y **GitHub Actions** para CI/CD automático, demostrando las mejores prácticas de desarrollo moderno.
 
-### `npm start`
+## 🚀 Guía de Ejecución Paso a Paso
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Prerrequisitos
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- Docker instalado
+- Node.js 18+ (para desarrollo local)
+- Cuenta en Docker Hub
+- Repositorio en GitHub
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 📝 Paso 1: Configuración del Dockerfile
 
-### `npm run build`
+Crear el archivo `Dockerfile` en la raíz del proyecto:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```dockerfile
+FROM node:20
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+**Explicación:**
+- Utiliza Node.js 20 como imagen base
+- Establece `/app` como directorio de trabajo
+- Copia dependencias e instala packages
+- Expone el puerto 3000 para la aplicación React
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+### ⚙️ Paso 2: Configuración de GitHub Actions
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Crear el archivo `.github/workflows/build-and-push.yml`:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```yaml
+name: Build and Push Docker Image
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/rick-morty-app:latest
+```
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 🔑 Paso 3: Configuración de Secretos en Docker Hub
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. **Crear Access Token en Docker Hub:**
+   - Ir a Docker Hub → Account Settings → Security
+   - Crear nuevo Access Token con permisos **Read, Write, Delete**
+   - Copiar el token generado
 
-### Code Splitting
+![Docker Hub Token](https://github.com/user-attachments/assets/c034b62d-7288-4da8-a4d6-d259e5f16d1a)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+2. **Configurar secretos en GitHub:**
+   - Repositorio → Settings → Secrets and variables → Actions
+   - Agregar `DOCKER_USERNAME`: tu usuario de Docker Hub
+   - Agregar `DOCKER_PASSWORD`: el token generado
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### ✅ Paso 4: Ejecución del Pipeline CI/CD
 
-### Making a Progressive Web App
+Al hacer push al repositorio, GitHub Actions ejecuta automáticamente:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+1. **Checkout:** Descarga el código fuente
+2. **Docker Buildx:** Configura herramientas de build avanzadas
+3. **Docker Login:** Autentica con Docker Hub usando secretos
+4. **Build & Push:** Construye la imagen y la sube al registro
 
-### Advanced Configuration
+![Successful GitHub Action](https://github.com/user-attachments/assets/d5defec6-2ec6-4604-a36c-3e63df5cd730)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+### 📦 Paso 5: Verificación en Docker Hub
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+La imagen se publica exitosamente en Docker Hub y está disponible para descarga:
 
-### `npm run build` fails to minify
+![Docker Hub Repository](https://github.com/user-attachments/assets/3729a739-27f1-4620-adf7-f602fe462018)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## 🖥️ Ejecución Local
+
+### Ejecutar desde Docker Hub
+
+```bash
+# Descargar y ejecutar la imagen desde Docker Hub
+docker run -p 3000:3000 tu-usuario/rick-morty-app:latest
+```
+
+![Terminal Execution](https://github.com/user-attachments/assets/1cfe0ea3-e03d-42f0-9932-789b1efcb3aa)
+
+---
+
+## 🌐 Acceso a la Aplicación
+
+Una vez ejecutado el contenedor, la aplicación estará disponible en:
+
+**URL:** http://localhost:3000
+
+![Running Application](https://github.com/user-attachments/assets/ace5a026-f943-4d2b-b3c6-f8b5d5075461)
+
+---
